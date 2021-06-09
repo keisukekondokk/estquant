@@ -1,0 +1,398 @@
+{smcl}
+{txt}{sf}{ul off}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}G:\MyWorks\RIETI_Project\Stata_Journal_ESTQUANT\estquant\demo_cdgpr\log/LOG_cdgpr_econometrica.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}23 Feb 2017, 13:34:34
+{txt}
+{com}. 
+. ** Display Time
+. disp "START: `c(current_time)' on `c(current_date)'"
+{res}START: 13:34:34 on 23 Feb 2017
+{txt}
+{com}. 
+. ** Setting
+. set matsize 1000
+{txt}
+{com}. 
+. ** Load Data
+. *insheet using "cdgprdata.csv", comma clear /* Stata ver. 12 */
+. import delimited "cdgprdata.csv", delimiter(comma) varnames(1) clear
+{res}{text}(3 vars, 137,013 obs)
+
+{com}. save "cdgprdata.dta", replace
+{txt}file cdgprdata.dta saved
+
+{com}. use "cdgprdata.dta", clear
+{txt}
+{com}. 
+. ** Bootstrap Sampling for bvariable(on)
+. set seed 1010101
+{txt}
+{com}. forvalue i = 1(1)100 {c -(}
+{txt}  2{com}.         qui: preserve
+{txt}  3{com}.         qui: bsample /*Without strata option*/
+{txt}  4{com}.         *qui: bsample, strata(cat) /*With strata option*/
+.         qui: rename tfp_ols tfp_ols`i'
+{txt}  5{com}.         qui: rename cat cat`i'
+{txt}  6{com}.         qui: save "bvariable/DTA_bvariable`i'.dta", replace
+{txt}  7{com}.         qui: restore
+{txt}  8{com}. {c )-}
+{txt}
+{com}. 
+. ** Merge
+. forvalue i = 1(1)100 {c -(}
+{txt}  2{com}.         qui: merge 1:1 _n using "bvariable/DTA_bvariable`i'.dta", keepusing(tfp_ols`i' cat`i')
+{txt}  3{com}.         qui: drop _merge
+{txt}  4{com}. {c )-}
+{txt}
+{com}. 
+. ** 
+. tab cat
+
+        {txt}cat {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+          1 {c |}{res}     58,654       42.81       42.81
+{txt}          2 {c |}{res}     78,359       57.19      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}    137,013      100.00
+{txt}
+{com}. 
+. ** Sort
+. sort cat tfp_ols
+{txt}
+{com}. 
+. ** Cleaning Outliers
+. egen l_c1 = pctile(tfp_ols) if cat == 1, p(1)
+{txt}(78359 missing values generated)
+
+{com}. egen u_c1 = pctile(tfp_ols) if cat == 1, p(99)
+{txt}(78359 missing values generated)
+
+{com}. egen l_c2 = pctile(tfp_ols) if cat == 2, p(1)
+{txt}(58654 missing values generated)
+
+{com}. egen u_c2 = pctile(tfp_ols) if cat == 2, p(99)
+{txt}(58654 missing values generated)
+
+{com}. 
+. replace tfp_ols = . if tfp_ols < l_c1 & cat == 1
+{txt}(586 real changes made, 586 to missing)
+
+{com}. replace tfp_ols = . if tfp_ols > u_c1 & cat == 1
+{txt}(586 real changes made, 586 to missing)
+
+{com}. replace tfp_ols = . if tfp_ols < l_c2 & cat == 2
+{txt}(783 real changes made, 783 to missing)
+
+{com}. replace tfp_ols = . if tfp_ols > u_c2 & cat == 2
+{txt}(783 real changes made, 783 to missing)
+
+{com}. 
+. ** Conditional mean of category=0 put to 0, shift of every observations
+. sum tfp_ols if cat == 1
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}tfp_ols {c |}{res}     57,482   -.0650224    .3452695  -1.299321    1.22378
+{txt}
+{com}. scalar mean_tfp_cat1 = r(mean)
+{txt}
+{com}. replace tfp_ols = tfp_ols - mean_tfp_cat1
+{txt}(134,275 real changes made)
+
+{com}. 
+. 
+. ** Cleaning Outliers for Bootstrap Samples
+. forvalue i = 1(1)100 {c -(}
+{txt}  2{com}.         ** Sort
+.         qui: sort cat`i' tfp_ols`i'
+{txt}  3{com}. 
+.         ** Cleaning Outliers
+.         qui: egen l`i'_c1 = pctile(tfp_ols`i') if cat`i' == 1, p(1)
+{txt}  4{com}.         qui: egen u`i'_c1 = pctile(tfp_ols`i') if cat`i' == 1, p(99)
+{txt}  5{com}.         qui: egen l`i'_c2 = pctile(tfp_ols`i') if cat`i' == 2, p(1)
+{txt}  6{com}.         qui: egen u`i'_c2 = pctile(tfp_ols`i') if cat`i' == 2, p(99)
+{txt}  7{com}. 
+.         qui: replace tfp_ols`i' = . if tfp_ols`i' < l`i'_c1 & cat`i' == 1
+{txt}  8{com}.         qui: replace tfp_ols`i' = . if tfp_ols`i' > u`i'_c1 & cat`i' == 1
+{txt}  9{com}.         qui: replace tfp_ols`i' = . if tfp_ols`i' < l`i'_c2 & cat`i' == 2
+{txt} 10{com}.         qui: replace tfp_ols`i' = . if tfp_ols`i' > u`i'_c2 & cat`i' == 2
+{txt} 11{com}. 
+.         ** Conditional mean of category=0 put to 0, shift of every observations
+.         qui: sum tfp_ols`i' if cat`i' == 1
+{txt} 12{com}.         qui: scalar mean_tfp`i'_cat1 = r(mean)
+{txt} 13{com}.         qui: replace tfp_ols`i' = tfp_ols`i' - mean_tfp`i'_cat1
+{txt} 14{com}. 
+. {c )-}
+{txt}
+{com}. 
+. 
+. /***************************** 
+> ** Estimation
+> *****************************/ 
+. 
+. ** Estimation
+. estquant tfp_ols, cat(cat) sh bvar(on) brep(100) eps2(1e-8)
+Bootstrap replications (100)
+{res}{c TT}{hline 15}{c TT}
+{c |}Completed:  10%{c |}
+{c |}Completed:  20%{c |}
+{c |}Completed:  30%{c |}
+{c |}Completed:  40%{c |}
+{c |}Completed:  50%{c |}
+{c |}Completed:  60%{c |}
+{c |}Completed:  70%{c |}
+{c |}Completed:  80%{c |}
+{c |}Completed:  90%{c |}
+{c |}Completed: 100%{c |}
+{c BT}{hline 15}{c BT}
+
+
+{txt}         cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
+{hline 13}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
+{txt}           1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
+{txt}           2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.5963 
+{hline 13}{c +}{hline 31} 
+{txt}{space 7}Total {c |}{res}   134275     .05292      .3931 
+
+{hline 13}{c TT}{hline 64} 
+{txt}{space 12} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
+{txt}     tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
+{hline 13}{c +}{hline 64} 
+{txt}     Shift A {c |}{res}  .09254147   .0025047    36.95   0.000    .08763234    .0974506
+{txt}  Dilation D {c |}{res}          1          .        .       .            .           .
+{txt}Truncation S {c |}{res}          0          .        .       .            .           .
+{hline 13}{c BT}{hline 64} 
+{txt}Constrained parameters: {res}D = 1, S = 0 
+{hline 78} 
+{txt}
+{com}. est store reg1
+{txt}
+{com}. matrix mB1 = e(B)
+{txt}
+{com}. 
+. estquant tfp_ols, cat(cat) sh di bvar(on) brep(100) eps2(1e-8)
+Bootstrap replications (100)
+{res}{c TT}{hline 15}{c TT}
+{c |}Completed:  10%{c |}
+{c |}Completed:  20%{c |}
+{c |}Completed:  30%{c |}
+{c |}Completed:  40%{c |}
+{c |}Completed:  50%{c |}
+{c |}Completed:  60%{c |}
+{c |}Completed:  70%{c |}
+{c |}Completed:  80%{c |}
+{c |}Completed:  90%{c |}
+{c |}Completed: 100%{c |}
+{c BT}{hline 15}{c BT}
+
+
+{txt}         cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
+{hline 13}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
+{txt}           1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
+{txt}           2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.9963 
+{hline 13}{c +}{hline 31} 
+{txt}{space 7}Total {c |}{res}   134275     .05292      .3931 
+
+{hline 13}{c TT}{hline 64} 
+{txt}{space 12} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
+{txt}     tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
+{hline 13}{c +}{hline 64} 
+{txt}     Shift A {c |}{res}  .09254796   .0025138    36.82   0.000     .0876211    .0974749
+{txt}  Dilation D {c |}{res}   1.219458    .007742    28.35   0.000      1.20428     1.23463
+{txt}Truncation S {c |}{res}          0          .        .       .            .           .
+{hline 13}{c BT}{hline 64} 
+{txt}Constrained parameters: {res}S = 0 
+{hline 78} 
+{txt}
+{com}. est store reg2
+{txt}
+{com}. matrix mB2 = e(B)
+{txt}
+{com}. 
+. estquant tfp_ols, cat(cat) sh tr bvar(on) brep(100) eps2(1e-8)
+Bootstrap replications (100)
+{res}{c TT}{hline 15}{c TT}
+{c |}Completed:  10%{c |}
+{c |}Completed:  20%{c |}
+{c |}Completed:  30%{c |}
+{c |}Completed:  40%{c |}
+{c |}Completed:  50%{c |}
+{c |}Completed:  60%{c |}
+{c |}Completed:  70%{c |}
+{c |}Completed:  80%{c |}
+{c |}Completed:  90%{c |}
+{c |}Completed: 100%{c |}
+{c BT}{hline 15}{c BT}
+
+
+{txt}         cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
+{hline 13}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
+{txt}           1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
+{txt}           2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.7214 
+{hline 13}{c +}{hline 31} 
+{txt}{space 7}Total {c |}{res}   134275     .05292      .3931 
+
+{hline 13}{c TT}{hline 64} 
+{txt}{space 12} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
+{txt}     tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
+{hline 13}{c +}{hline 64} 
+{txt}     Shift A {c |}{res}    .114617   .0026118    43.88   0.000      .109498     .119736
+{txt}  Dilation D {c |}{res}          1          .        .       .            .           .
+{txt}Truncation S {c |}{res} -.01947189   .0020819    -9.35   0.000   -.02355232  -.01539146
+{hline 13}{c BT}{hline 64} 
+{txt}Constrained parameters: {res}D = 1 
+{hline 78} 
+{txt}
+{com}. est store reg3
+{txt}
+{com}. matrix mB3 = e(B)
+{txt}
+{com}. 
+. estquant tfp_ols, cat(cat) tr bvar(on) brep(100) eps2(1e-8)
+Bootstrap replications (100)
+{res}{c TT}{hline 15}{c TT}
+{c |}Completed:  10%{c |}
+{c |}Completed:  20%{c |}
+{c |}Completed:  30%{c |}
+{c |}Completed:  40%{c |}
+{c |}Completed:  50%{c |}
+{c |}Completed:  60%{c |}
+{c |}Completed:  70%{c |}
+{c |}Completed:  80%{c |}
+{c |}Completed:  90%{c |}
+{c |}Completed: 100%{c |}
+{c BT}{hline 15}{c BT}
+
+
+{txt}         cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
+{hline 13}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
+{txt}           1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
+{txt}           2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.0025 
+{hline 13}{c +}{hline 31} 
+{txt}{space 7}Total {c |}{res}   134275     .05292      .3931 
+
+{hline 13}{c TT}{hline 64} 
+{txt}{space 12} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
+{txt}     tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
+{hline 13}{c +}{hline 64} 
+{txt}     Shift A {c |}{res}          0          .        .       .            .           .
+{txt}  Dilation D {c |}{res}          1          .        .       .            .           .
+{txt}Truncation S {c |}{res}-.001259614  .00064849    -1.94   0.052  -.002530634  .000011406
+{hline 13}{c BT}{hline 64} 
+{txt}Constrained parameters: {res}A = 0, D = 1 
+{hline 78} 
+{txt}
+{com}. est store reg4
+{txt}
+{com}. matrix mB4 = e(B)
+{txt}
+{com}. 
+. estquant tfp_ols, cat(cat) sh di tr bvar(on) brep(100) eps2(1e-8)
+Bootstrap replications (100)
+{res}{c TT}{hline 15}{c TT}
+{c |}Completed:  10%{c |}
+{c |}Completed:  20%{c |}
+{c |}Completed:  30%{c |}
+{txt}numerical derivatives are approximate
+flat or discontinuous region encountered
+{res}{c |}Completed:  40%{c |}
+{c |}Completed:  50%{c |}
+{c |}Completed:  60%{c |}
+{c |}Completed:  70%{c |}
+{c |}Completed:  80%{c |}
+{c |}Completed:  90%{c |}
+{c |}Completed: 100%{c |}
+{c BT}{hline 15}{c BT}
+
+
+{txt}         cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
+{hline 13}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
+{txt}           1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
+{txt}           2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.9974 
+{hline 13}{c +}{hline 31} 
+{txt}{space 7}Total {c |}{res}   134275     .05292      .3931 
+
+{hline 13}{c TT}{hline 64} 
+{txt}{space 12} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
+{txt}     tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
+{hline 13}{c +}{hline 64} 
+{txt}     Shift A {c |}{res}  .09060513   .0023285    38.91   0.000     .0860413     .095169
+{txt}  Dilation D {c |}{res}   1.228494   .0086271    26.49   0.000      1.21159      1.2454
+{txt}Truncation S {c |}{res} .001315083  .00084612     1.55   0.120  -.000343273   .00297344
+{hline 13}{c BT}{hline 64} 
+{txt}Constrained parameters: {res}nothing 
+{hline 78} 
+{txt}
+{com}. est store reg5
+{txt}
+{com}. matrix mB5 = e(B)
+{txt}
+{com}. 
+. ** Summary
+. est tab reg1 reg2 reg3 reg4 reg5, /*
+>         */ b(%12.3f) se(%12.3f) stats(N N1 N2 r2) stfmt(%12.3f) 
+{res}
+{txt}{hline 12}{c -}{c TT}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
+{ralign 12:Variable} {c |} {center 12:reg1} {space 1} {center 12:reg2} {space 1} {center 12:reg3} {space 1} {center 12:reg4} {space 1} {center 12:reg5} {space 1}
+{hline 12}{c -}{c +}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
+{res}{txt}{space 5}Shift A {c |}{res} {ralign 12:0.093}{txt} {space 1}{res} {ralign 12:0.093}{txt} {space 1}{res} {ralign 12:0.115}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.091}{txt} {space 1}
+{space 12} {c |}{res} {ralign 12:0.003}{txt} {space 1}{res} {ralign 12:0.003}{txt} {space 1}{res} {ralign 12:0.003}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.002}{txt} {space 1}
+{res}{txt}{space 2}Dilation D {c |}{res} {ralign 12:1.000}{txt} {space 1}{res} {ralign 12:1.219}{txt} {space 1}{res} {ralign 12:1.000}{txt} {space 1}{res} {ralign 12:1.000}{txt} {space 1}{res} {ralign 12:1.228}{txt} {space 1}
+{space 12} {c |}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.008}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.009}{txt} {space 1}
+{res}{txt}Truncation S {c |}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:-0.019}{txt} {space 1}{res} {ralign 12:-0.001}{txt} {space 1}{res} {ralign 12:0.001}{txt} {space 1}
+{space 12} {c |}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.002}{txt} {space 1}{res} {ralign 12:0.001}{txt} {space 1}{res} {ralign 12:0.001}{txt} {space 1}
+{hline 12}{c -}{c +}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
+{ralign 12:N} {c |}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}
+{ralign 12:N1} {c |}{res} {ralign 12:57482.000}{txt} {space 1}{res} {ralign 12:57482.000}{txt} {space 1}{res} {ralign 12:57482.000}{txt} {space 1}{res} {ralign 12:57482.000}{txt} {space 1}{res} {ralign 12:57482.000}{txt} {space 1}
+{ralign 12:N2} {c |}{res} {ralign 12:76793.000}{txt} {space 1}{res} {ralign 12:76793.000}{txt} {space 1}{res} {ralign 12:76793.000}{txt} {space 1}{res} {ralign 12:76793.000}{txt} {space 1}{res} {ralign 12:76793.000}{txt} {space 1}
+{ralign 12:r2} {c |}{res} {ralign 12:0.596}{txt} {space 1}{res} {ralign 12:0.996}{txt} {space 1}{res} {ralign 12:0.721}{txt} {space 1}{res} {ralign 12:0.003}{txt} {space 1}{res} {ralign 12:0.997}{txt} {space 1}
+{hline 12}{c -}{c BT}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
+{ralign 89:legend: b/se}
+
+{com}. 
+. ** Summary
+. est tab reg1 reg2 reg3 reg4 reg5, /*
+>         */ b(%12.6f) se(%12.6f) stats(N N1 N2 r2) stfmt(%12.6f) 
+{res}
+{txt}{hline 12}{c -}{c TT}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
+{ralign 12:Variable} {c |} {center 12:reg1} {space 1} {center 12:reg2} {space 1} {center 12:reg3} {space 1} {center 12:reg4} {space 1} {center 12:reg5} {space 1}
+{hline 12}{c -}{c +}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
+{res}{txt}{space 5}Shift A {c |}{res} {ralign 12:0.092541}{txt} {space 1}{res} {ralign 12:0.092548}{txt} {space 1}{res} {ralign 12:0.114617}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.090605}{txt} {space 1}
+{space 12} {c |}{res} {ralign 12:0.002505}{txt} {space 1}{res} {ralign 12:0.002514}{txt} {space 1}{res} {ralign 12:0.002612}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.002329}{txt} {space 1}
+{res}{txt}{space 2}Dilation D {c |}{res} {ralign 12:1.000000}{txt} {space 1}{res} {ralign 12:1.219458}{txt} {space 1}{res} {ralign 12:1.000000}{txt} {space 1}{res} {ralign 12:1.000000}{txt} {space 1}{res} {ralign 12:1.228494}{txt} {space 1}
+{space 12} {c |}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.007742}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.008627}{txt} {space 1}
+{res}{txt}Truncation S {c |}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:-0.019472}{txt} {space 1}{res} {ralign 12:-0.001260}{txt} {space 1}{res} {ralign 12:0.001315}{txt} {space 1}
+{space 12} {c |}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.002082}{txt} {space 1}{res} {ralign 12:0.000648}{txt} {space 1}{res} {ralign 12:0.000846}{txt} {space 1}
+{hline 12}{c -}{c +}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
+{ralign 12:N} {c |}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}
+{ralign 12:N1} {c |}{res} {ralign 12:57482.000000}{txt} {space 1}{res} {ralign 12:57482.000000}{txt} {space 1}{res} {ralign 12:57482.000000}{txt} {space 1}{res} {ralign 12:57482.000000}{txt} {space 1}{res} {ralign 12:57482.000000}{txt} {space 1}
+{ralign 12:N2} {c |}{res} {ralign 12:76793.000000}{txt} {space 1}{res} {ralign 12:76793.000000}{txt} {space 1}{res} {ralign 12:76793.000000}{txt} {space 1}{res} {ralign 12:76793.000000}{txt} {space 1}{res} {ralign 12:76793.000000}{txt} {space 1}
+{ralign 12:r2} {c |}{res} {ralign 12:0.596315}{txt} {space 1}{res} {ralign 12:0.996278}{txt} {space 1}{res} {ralign 12:0.721439}{txt} {space 1}{res} {ralign 12:0.002500}{txt} {space 1}{res} {ralign 12:0.997366}{txt} {space 1}
+{hline 12}{c -}{c BT}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
+{ralign 89:legend: b/se}
+
+{com}. 
+.         
+. ** Save Results by mat2txt
+. forvalues i = 1(1)5 {c -(}
+{txt}  2{com}.         qui: mat2txt, matrix(mB`i') saving("bootstrap/mB`i'.txt") format("%16.12f") replace
+{txt}  3{com}. {c )-}
+{txt}
+{com}. 
+. 
+. ** Display Time
+. disp "END: `c(current_time)' on `c(current_date)'"
+{res}END: 13:57:55 on 23 Feb 2017
+{txt}
+{com}. 
+. ** End Log
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}G:\MyWorks\RIETI_Project\Stata_Journal_ESTQUANT\estquant\demo_cdgpr\log/LOG_cdgpr_econometrica.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res}23 Feb 2017, 13:57:55
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}exit, clear

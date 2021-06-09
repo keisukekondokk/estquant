@@ -1,0 +1,8 @@
+v 3
+d estquant.  Stata module to implement Quantile approach by Combes et al. (2012)
+d Keisuke Kondo, Research Institute of Economy, Trade and Industry
+d 
+d Support: webpage https://keisukekondokk.github.io/
+d Support: email kondo-keisuke@rieti.go.jp
+f ado/estquant.ado
+f ado/estquant.sthlp

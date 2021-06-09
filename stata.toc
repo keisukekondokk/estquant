@@ -1,0 +1,3 @@
+v 3
+d Keisuke Kondo, Research Institute of Economy, Trade and Industry
+p estquant Stata module to implement Quantile approach by Combes et al. (2012)
