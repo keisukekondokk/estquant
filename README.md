@@ -16,7 +16,7 @@ net install estquant, replace from("https://raw.githubusercontent.com/keisukekon
 ssc install estquant, replace
 ```
 
-## Documents
+## Manual
 See [`doc`](./doc) directory.
 
 <pre>
