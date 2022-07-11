@@ -8,7 +8,7 @@
 **
 ** [Contact]
 ** Email: kondo-keisuke@rieti.go.jp
-** URL: https://sites.google.com/site/keisukekondokk/
+** URL: https://keisukekondokk.github.io/
 *******************************************************************************/
 
 ** Clear All
@@ -86,13 +86,13 @@ disp "START: `c(current_time)' on `c(current_date)'"
 ** Model Specification: Shift + Dilation
 ** Misspecified Model: Upward bias for A, Downward bias for D
 /*NOTE: This is the case of bvar(off).*/
-estquant lntfp, cat(cat) sh di 
+estquant lntfp, cat(cat) sh di optech(nm)
 
 ** Estimation by Quantile Approach
 ** Model Specification: Shift + Dilation + Truncation
 ** Correctly Specified Model
 /*NOTE: This is the case of bvar(off).*/
-estquant lntfp, cat(cat) sh di tr
+estquant lntfp, cat(cat) sh di tr optech(nm)
 	
 ** Display Time
 disp "END: `c(current_time)' on `c(current_date)'"
