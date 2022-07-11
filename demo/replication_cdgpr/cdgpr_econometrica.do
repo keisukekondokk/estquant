@@ -9,14 +9,14 @@
 ** From Firm Selection," Econometrica 80(6), pp. 2543-2594
 ** 
 ** Kondo, K (2017) "Quantile approach for distinguishing agglomeration from firm
-** selection in Stata," Mimeo
+** selection in Stata," RIETI TP No. 17-T-001
 ** 
 ** [Required Package]
 ** mat2txt is required to save matrix data.
 **
 ** [Contact]
 ** Email: kondo-keisuke@rieti.go.jp
-** URL: https://sites.google.com/site/keisukekondokk/
+** URL: https://keisukekondokk.github.io/
 *******************************************************************************/
 
 ** Log
@@ -29,17 +29,21 @@ disp "START: `c(current_time)' on `c(current_date)'"
 set matsize 1000
 
 ** Load Data
+** ================
+** Please download the original replication file of Combes et al. (2012) from the following URL:
+** https://www.econometricsociety.org/publications/econometrica/2012/11/01/productivity-advantages-large-cities-distinguishing
+** ================
 *insheet using "cdgprdata.csv", comma clear /* Stata ver. 12 */
-import delimited "cdgprdata.csv", delimiter(comma) varnames(1) clear
-save "cdgprdata.dta", replace
+*import delimited "cdgprdata.csv", delimiter(comma) varnames(1) clear
+*save "cdgprdata.dta", replace
 use "cdgprdata.dta", clear
 
 ** Bootstrap Sampling for bvariable(on)
 set seed 1010101
 forvalue i = 1(1)100 {
 	qui: preserve
-	qui: bsample /*Without strata option*/
-	*qui: bsample, strata(cat) /*With strata option*/
+	*qui: bsample /*Without strata option*/
+	qui: bsample, strata(cat) /*With strata option*/
 	qui: rename tfp_ols tfp_ols`i'
 	qui: rename cat cat`i'
 	qui: save "bvariable/DTA_bvariable`i'.dta", replace
@@ -104,23 +108,23 @@ forvalue i = 1(1)100 {
 *****************************/ 
 
 ** Estimation
-estquant tfp_ols, cat(cat) sh bvar(on) brep(100) eps2(1e-8)
+estquant tfp_ols, cat(cat) sh bvar(on) brep(100) optech(nm)
 est store reg1
 matrix mB1 = e(B)
 
-estquant tfp_ols, cat(cat) sh di bvar(on) brep(100) eps2(1e-8)
+estquant tfp_ols, cat(cat) sh di bvar(on) brep(100) optech(nm)
 est store reg2
 matrix mB2 = e(B)
 
-estquant tfp_ols, cat(cat) sh tr bvar(on) brep(100) eps2(1e-8)
+estquant tfp_ols, cat(cat) sh tr bvar(on) brep(100) optech(nm)
 est store reg3
 matrix mB3 = e(B)
 
-estquant tfp_ols, cat(cat) tr bvar(on) brep(100) eps2(1e-8)
+estquant tfp_ols, cat(cat) tr bvar(on) brep(100) optech(nm)
 est store reg4
 matrix mB4 = e(B)
 
-estquant tfp_ols, cat(cat) sh di tr bvar(on) brep(100) eps2(1e-8)
+estquant tfp_ols, cat(cat) sh di tr bvar(on) brep(100) optech(nm)
 est store reg5
 matrix mB5 = e(B)
 

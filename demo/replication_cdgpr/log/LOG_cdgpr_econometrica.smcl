@@ -1,14 +1,14 @@
 {smcl}
-{txt}{sf}{ul off}{.-}
+{com}{sf}{ul off}{txt}{.-}
       name:  {res}<unnamed>
-       {txt}log:  {res}G:\MyWorks\RIETI_Project\Stata_Journal_ESTQUANT\estquant\demo_cdgpr\log/LOG_cdgpr_econometrica.smcl
+       {txt}log:  {res}H:\MyWorks\RIETI_Project\Stata_RePEc_ESTQUANT\github\estquant\demo\replication_cdgpr\log/LOG_cdgpr_econometrica.smcl
   {txt}log type:  {res}smcl
- {txt}opened on:  {res}23 Feb 2017, 13:34:34
+ {txt}opened on:  {res}11 Jul 2022, 17:24:14
 {txt}
 {com}. 
 . ** Display Time
 . disp "START: `c(current_time)' on `c(current_date)'"
-{res}START: 13:34:34 on 23 Feb 2017
+{res}START: 17:24:14 on 11 Jul 2022
 {txt}
 {com}. 
 . ** Setting
@@ -16,14 +16,14 @@
 {txt}
 {com}. 
 . ** Load Data
+. ** ================
+. ** Please download the original replication file of Combes et al. (2012) from the following URL:
+. ** https://www.econometricsociety.org/publications/econometrica/2012/11/01/productivity-advantages-large-cities-distinguishing
+. ** ================
 . *insheet using "cdgprdata.csv", comma clear /* Stata ver. 12 */
-. import delimited "cdgprdata.csv", delimiter(comma) varnames(1) clear
-{res}{text}(3 vars, 137,013 obs)
-
-{com}. save "cdgprdata.dta", replace
-{txt}file cdgprdata.dta saved
-
-{com}. use "cdgprdata.dta", clear
+. *import delimited "cdgprdata.csv", delimiter(comma) varnames(1) clear
+. *save "cdgprdata.dta", replace
+. use "cdgprdata.dta", clear
 {txt}
 {com}. 
 . ** Bootstrap Sampling for bvariable(on)
@@ -31,9 +31,9 @@
 {txt}
 {com}. forvalue i = 1(1)100 {c -(}
 {txt}  2{com}.         qui: preserve
-{txt}  3{com}.         qui: bsample /*Without strata option*/
-{txt}  4{com}.         *qui: bsample, strata(cat) /*With strata option*/
-.         qui: rename tfp_ols tfp_ols`i'
+{txt}  3{com}.         *qui: bsample /*Without strata option*/
+.         qui: bsample, strata(cat) /*With strata option*/
+{txt}  4{com}.         qui: rename tfp_ols tfp_ols`i'
 {txt}  5{com}.         qui: rename cat cat`i'
 {txt}  6{com}.         qui: save "bvariable/DTA_bvariable`i'.dta", replace
 {txt}  7{com}.         qui: restore
@@ -133,197 +133,200 @@
 > *****************************/ 
 . 
 . ** Estimation
-. estquant tfp_ols, cat(cat) sh bvar(on) brep(100) eps2(1e-8)
+. estquant tfp_ols, cat(cat) sh bvar(on) brep(100) optech(nm)
+{txt}Value of delta to built the simplex required by the Nelder–Mead method (.01)
 Bootstrap replications (100)
-{res}{c TT}{hline 15}{c TT}
-{c |}Completed:  10%{c |}
-{c |}Completed:  20%{c |}
-{c |}Completed:  30%{c |}
-{c |}Completed:  40%{c |}
-{c |}Completed:  50%{c |}
-{c |}Completed:  60%{c |}
-{c |}Completed:  70%{c |}
-{c |}Completed:  80%{c |}
-{c |}Completed:  90%{c |}
-{c |}Completed: 100%{c |}
+{res}{txt}{c TT}{hline 15}{c TT}
+{res}{txt}{c |}Completed:  10%{c |}
+{res}{txt}{c |}Completed:  20%{c |}
+{res}{txt}{c |}Completed:  30%{c |}
+{res}{txt}{c |}Completed:  40%{c |}
+{res}{txt}{c |}Completed:  50%{c |}
+{res}{txt}{c |}Completed:  60%{c |}
+{res}{txt}{c |}Completed:  70%{c |}
+{res}{txt}{c |}Completed:  80%{c |}
+{res}{txt}{c |}Completed:  90%{c |}
+{res}{txt}{c |}Completed: 100%{c |}
 {c BT}{hline 15}{c BT}
+{res}
 
+{txt}             cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
+{hline 17}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
+{txt}               1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
+{txt}               2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.5963 
+{hline 17}{c +}{hline 31} 
+{txt}{space 11}Total {c |}{res}   134275      .05292     .3931 
 
-{txt}         cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
-{hline 13}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
-{txt}           1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
-{txt}           2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.5963 
-{hline 13}{c +}{hline 31} 
-{txt}{space 7}Total {c |}{res}   134275     .05292      .3931 
-
-{hline 13}{c TT}{hline 64} 
-{txt}{space 12} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
-{txt}     tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
-{hline 13}{c +}{hline 64} 
-{txt}     Shift A {c |}{res}  .09254147   .0025047    36.95   0.000    .08763234    .0974506
-{txt}  Dilation D {c |}{res}          1          .        .       .            .           .
-{txt}Truncation S {c |}{res}          0          .        .       .            .           .
-{hline 13}{c BT}{hline 64} 
+{hline 17}{c TT}{hline 64} 
+{txt}{space 16} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
+{txt}         tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
+{hline 17}{c +}{hline 64} 
+{txt}         Shift A {c |}{res}  .09254147   .0023654    39.12   0.000    .08790528   .09717767
+{txt}      Dilation D {c |}{res}          1          .        .       .            .           .
+{txt}    Truncation S {c |}{res}          0          .        .       .            .           .
+{hline 17}{c BT}{hline 64} 
 {txt}Constrained parameters: {res}D = 1, S = 0 
-{hline 78} 
+{hline 82} 
 {txt}
 {com}. est store reg1
 {txt}
 {com}. matrix mB1 = e(B)
 {txt}
 {com}. 
-. estquant tfp_ols, cat(cat) sh di bvar(on) brep(100) eps2(1e-8)
+. estquant tfp_ols, cat(cat) sh di bvar(on) brep(100) optech(nm)
+{txt}Value of delta to built the simplex required by the Nelder–Mead method (.01)
 Bootstrap replications (100)
-{res}{c TT}{hline 15}{c TT}
-{c |}Completed:  10%{c |}
-{c |}Completed:  20%{c |}
-{c |}Completed:  30%{c |}
-{c |}Completed:  40%{c |}
-{c |}Completed:  50%{c |}
-{c |}Completed:  60%{c |}
-{c |}Completed:  70%{c |}
-{c |}Completed:  80%{c |}
-{c |}Completed:  90%{c |}
-{c |}Completed: 100%{c |}
+{res}{txt}{c TT}{hline 15}{c TT}
+{res}{txt}{c |}Completed:  10%{c |}
+{res}{txt}{c |}Completed:  20%{c |}
+{res}{txt}{c |}Completed:  30%{c |}
+{res}{txt}{c |}Completed:  40%{c |}
+{res}{txt}{c |}Completed:  50%{c |}
+{res}{txt}{c |}Completed:  60%{c |}
+{res}{txt}{c |}Completed:  70%{c |}
+{res}{txt}{c |}Completed:  80%{c |}
+{res}{txt}{c |}Completed:  90%{c |}
+{res}{txt}{c |}Completed: 100%{c |}
 {c BT}{hline 15}{c BT}
+{res}
 
+{txt}             cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
+{hline 17}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
+{txt}               1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
+{txt}               2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.9963 
+{hline 17}{c +}{hline 31} 
+{txt}{space 11}Total {c |}{res}   134275      .05292     .3931 
 
-{txt}         cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
-{hline 13}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
-{txt}           1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
-{txt}           2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.9963 
-{hline 13}{c +}{hline 31} 
-{txt}{space 7}Total {c |}{res}   134275     .05292      .3931 
-
-{hline 13}{c TT}{hline 64} 
-{txt}{space 12} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
-{txt}     tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
-{hline 13}{c +}{hline 64} 
-{txt}     Shift A {c |}{res}  .09254796   .0025138    36.82   0.000     .0876211    .0974749
-{txt}  Dilation D {c |}{res}   1.219458    .007742    28.35   0.000      1.20428     1.23463
-{txt}Truncation S {c |}{res}          0          .        .       .            .           .
-{hline 13}{c BT}{hline 64} 
+{hline 17}{c TT}{hline 64} 
+{txt}{space 16} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
+{txt}         tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
+{hline 17}{c +}{hline 64} 
+{txt}         Shift A {c |}{res}  .09254796    .002368    39.08   0.000     .0879068    .0971891
+{txt}      Dilation D {c |}{res}   1.219458    .008085    27.14   0.000      1.20361      1.2353
+{txt}    Truncation S {c |}{res}          0          .        .       .            .           .
+{hline 17}{c BT}{hline 64} 
 {txt}Constrained parameters: {res}S = 0 
-{hline 78} 
+{hline 82} 
 {txt}
 {com}. est store reg2
 {txt}
 {com}. matrix mB2 = e(B)
 {txt}
 {com}. 
-. estquant tfp_ols, cat(cat) sh tr bvar(on) brep(100) eps2(1e-8)
+. estquant tfp_ols, cat(cat) sh tr bvar(on) brep(100) optech(nm)
+{txt}Value of delta to built the simplex required by the Nelder–Mead method (.01)
 Bootstrap replications (100)
-{res}{c TT}{hline 15}{c TT}
-{c |}Completed:  10%{c |}
-{c |}Completed:  20%{c |}
-{c |}Completed:  30%{c |}
-{c |}Completed:  40%{c |}
-{c |}Completed:  50%{c |}
-{c |}Completed:  60%{c |}
-{c |}Completed:  70%{c |}
-{c |}Completed:  80%{c |}
-{c |}Completed:  90%{c |}
-{c |}Completed: 100%{c |}
+{res}{txt}{c TT}{hline 15}{c TT}
+{res}{txt}{c |}Completed:  10%{c |}
+{res}{txt}{c |}Completed:  20%{c |}
+{res}{txt}{c |}Completed:  30%{c |}
+{res}{txt}{c |}Completed:  40%{c |}
+{res}{txt}{c |}Completed:  50%{c |}
+{res}{txt}{c |}Completed:  60%{c |}
+{res}{txt}{c |}Completed:  70%{c |}
+{res}{txt}{c |}Completed:  80%{c |}
+{res}{txt}{c |}Completed:  90%{c |}
+{res}{txt}{c |}Completed: 100%{c |}
 {c BT}{hline 15}{c BT}
+{res}
 
+{txt}             cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
+{hline 17}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
+{txt}               1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
+{txt}               2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.7214 
+{hline 17}{c +}{hline 31} 
+{txt}{space 11}Total {c |}{res}   134275      .05292     .3931 
 
-{txt}         cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
-{hline 13}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
-{txt}           1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
-{txt}           2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.7214 
-{hline 13}{c +}{hline 31} 
-{txt}{space 7}Total {c |}{res}   134275     .05292      .3931 
-
-{hline 13}{c TT}{hline 64} 
-{txt}{space 12} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
-{txt}     tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
-{hline 13}{c +}{hline 64} 
-{txt}     Shift A {c |}{res}    .114617   .0026118    43.88   0.000      .109498     .119736
-{txt}  Dilation D {c |}{res}          1          .        .       .            .           .
-{txt}Truncation S {c |}{res} -.01947189   .0020819    -9.35   0.000   -.02355232  -.01539146
-{hline 13}{c BT}{hline 64} 
+{hline 17}{c TT}{hline 64} 
+{txt}{space 16} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
+{txt}         tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
+{hline 17}{c +}{hline 64} 
+{txt}         Shift A {c |}{res}    .114849   .0032476    35.36   0.000     .1084839    .1212142
+{txt}      Dilation D {c |}{res}          1          .        .       .            .           .
+{txt}    Truncation S {c |}{res} -.01939786   .0021906    -8.86   0.000   -.02369137  -.01510436
+{hline 17}{c BT}{hline 64} 
 {txt}Constrained parameters: {res}D = 1 
-{hline 78} 
+{hline 82} 
 {txt}
 {com}. est store reg3
 {txt}
 {com}. matrix mB3 = e(B)
 {txt}
 {com}. 
-. estquant tfp_ols, cat(cat) tr bvar(on) brep(100) eps2(1e-8)
+. estquant tfp_ols, cat(cat) tr bvar(on) brep(100) optech(nm)
+{txt}Value of delta to built the simplex required by the Nelder–Mead method (.01)
 Bootstrap replications (100)
-{res}{c TT}{hline 15}{c TT}
-{c |}Completed:  10%{c |}
-{c |}Completed:  20%{c |}
-{c |}Completed:  30%{c |}
-{c |}Completed:  40%{c |}
-{c |}Completed:  50%{c |}
-{c |}Completed:  60%{c |}
-{c |}Completed:  70%{c |}
-{c |}Completed:  80%{c |}
-{c |}Completed:  90%{c |}
-{c |}Completed: 100%{c |}
+{res}{txt}{c TT}{hline 15}{c TT}
+{res}{txt}{c |}Completed:  10%{c |}
+{res}{txt}{c |}Completed:  20%{c |}
+{res}{txt}{c |}Completed:  30%{c |}
+{res}{txt}{c |}Completed:  40%{c |}
+{res}{txt}{c |}Completed:  50%{c |}
+{res}{txt}{c |}Completed:  60%{c |}
+{res}{txt}{c |}Completed:  70%{c |}
+{res}{txt}{c |}Completed:  80%{c |}
+{res}{txt}{c |}Completed:  90%{c |}
+{res}{txt}{c |}Completed: 100%{c |}
 {c BT}{hline 15}{c BT}
+{res}
 
+{txt}             cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
+{hline 17}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
+{txt}               1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
+{txt}               2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.0025 
+{hline 17}{c +}{hline 31} 
+{txt}{space 11}Total {c |}{res}   134275      .05292     .3931 
 
-{txt}         cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
-{hline 13}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
-{txt}           1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
-{txt}           2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.0025 
-{hline 13}{c +}{hline 31} 
-{txt}{space 7}Total {c |}{res}   134275     .05292      .3931 
-
-{hline 13}{c TT}{hline 64} 
-{txt}{space 12} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
-{txt}     tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
-{hline 13}{c +}{hline 64} 
-{txt}     Shift A {c |}{res}          0          .        .       .            .           .
-{txt}  Dilation D {c |}{res}          1          .        .       .            .           .
-{txt}Truncation S {c |}{res}-.001259614  .00064849    -1.94   0.052  -.002530634  .000011406
-{hline 13}{c BT}{hline 64} 
+{hline 17}{c TT}{hline 64} 
+{txt}{space 16} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
+{txt}         tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
+{hline 17}{c +}{hline 64} 
+{txt}         Shift A {c |}{res}          0          .        .       .            .           .
+{txt}      Dilation D {c |}{res}          1          .        .       .            .           .
+{txt}    Truncation S {c |}{res}-.001376686  .00069323    -1.99   0.047  -.002735383 -.000017989
+{hline 17}{c BT}{hline 64} 
 {txt}Constrained parameters: {res}A = 0, D = 1 
-{hline 78} 
+{hline 82} 
 {txt}
 {com}. est store reg4
 {txt}
 {com}. matrix mB4 = e(B)
 {txt}
 {com}. 
-. estquant tfp_ols, cat(cat) sh di tr bvar(on) brep(100) eps2(1e-8)
+. estquant tfp_ols, cat(cat) sh di tr bvar(on) brep(100) optech(nm)
+{txt}Value of delta to built the simplex required by the Nelder–Mead method (.01)
 Bootstrap replications (100)
-{res}{c TT}{hline 15}{c TT}
-{c |}Completed:  10%{c |}
-{c |}Completed:  20%{c |}
-{c |}Completed:  30%{c |}
-{txt}numerical derivatives are approximate
-flat or discontinuous region encountered
-{res}{c |}Completed:  40%{c |}
-{c |}Completed:  50%{c |}
-{c |}Completed:  60%{c |}
-{c |}Completed:  70%{c |}
-{c |}Completed:  80%{c |}
-{c |}Completed:  90%{c |}
-{c |}Completed: 100%{c |}
+{res}{txt}{c TT}{hline 15}{c TT}
+{res}{txt}{c |}Completed:  10%{c |}
+{res}{txt}{c |}Completed:  20%{c |}
+{res}{txt}{c |}Completed:  30%{c |}
+{res}{txt}{c |}Completed:  40%{c |}
+{res}{txt}{c |}Completed:  50%{c |}
+{res}{txt}{c |}Completed:  60%{c |}
+{res}{txt}{c |}Completed:  70%{c |}
+{res}{txt}{c |}Completed:  80%{c |}
+{res}{txt}{c |}Completed:  90%{c |}
+{res}{txt}{c |}Completed: 100%{c |}
 {c BT}{hline 15}{c BT}
+{res}
 
+{txt}             cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
+{hline 17}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
+{txt}               1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
+{txt}               2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.9974 
+{hline 17}{c +}{hline 31} 
+{txt}{space 11}Total {c |}{res}   134275      .05292     .3931 
 
-{txt}         cat {c |}{space 5}Obs. {space 6}Mean {space 6}S.D. {space 7} Number of obs = {res}  134275 
-{hline 13}{c +}{hline 31} {txt}{space 7} Replications  = {res}     100 
-{txt}           1 {c |}{res}    57482   1.038e-09     .3453 {space 8}{txt}BS Sample (%) = {res}       . 
-{txt}           2 {c |}{res}    76793      .09252      .421 {space 8}{txt}Pseudo R2     = {res}  0.9974 
-{hline 13}{c +}{hline 31} 
-{txt}{space 7}Total {c |}{res}   134275     .05292      .3931 
-
-{hline 13}{c TT}{hline 64} 
-{txt}{space 12} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
-{txt}     tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
-{hline 13}{c +}{hline 64} 
-{txt}     Shift A {c |}{res}  .09060513   .0023285    38.91   0.000     .0860413     .095169
-{txt}  Dilation D {c |}{res}   1.228494   .0086271    26.49   0.000      1.21159      1.2454
-{txt}Truncation S {c |}{res} .001315083  .00084612     1.55   0.120  -.000343273   .00297344
-{hline 13}{c BT}{hline 64} 
+{hline 17}{c TT}{hline 64} 
+{txt}{space 16} {c |}{space 3}Observed{space 3}Bootstrap{space 25}Normal-based 
+{txt}         tfp_ols {c |}{space 6}Coef.{space 3}Std. Err.{space 6}z{space 4}P>|z|{space 3}[95.0% Conf. Interval]
+{hline 17}{c +}{hline 64} 
+{txt}         Shift A {c |}{res}  .09065672   .0019315    46.94   0.000      .086871    .0944425
+{txt}      Dilation D {c |}{res}   1.228265   .0087912    25.97   0.000      1.21103      1.2455
+{txt}    Truncation S {c |}{res} .001279815  .00083778     1.53   0.127  -.000362212   .00292184
+{hline 17}{c BT}{hline 64} 
 {txt}Constrained parameters: {res}nothing 
-{hline 78} 
+{hline 82} 
 {txt}
 {com}. est store reg5
 {txt}
@@ -338,19 +341,19 @@ flat or discontinuous region encountered
 {ralign 12:Variable} {c |} {center 12:reg1} {space 1} {center 12:reg2} {space 1} {center 12:reg3} {space 1} {center 12:reg4} {space 1} {center 12:reg5} {space 1}
 {hline 12}{c -}{c +}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
 {res}{txt}{space 5}Shift A {c |}{res} {ralign 12:0.093}{txt} {space 1}{res} {ralign 12:0.093}{txt} {space 1}{res} {ralign 12:0.115}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.091}{txt} {space 1}
-{space 12} {c |}{res} {ralign 12:0.003}{txt} {space 1}{res} {ralign 12:0.003}{txt} {space 1}{res} {ralign 12:0.003}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.002}{txt} {space 1}
+{res}{txt}{space 12} {c |}{res} {ralign 12:0.002}{txt} {space 1}{res} {ralign 12:0.002}{txt} {space 1}{res} {ralign 12:0.003}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.002}{txt} {space 1}
 {res}{txt}{space 2}Dilation D {c |}{res} {ralign 12:1.000}{txt} {space 1}{res} {ralign 12:1.219}{txt} {space 1}{res} {ralign 12:1.000}{txt} {space 1}{res} {ralign 12:1.000}{txt} {space 1}{res} {ralign 12:1.228}{txt} {space 1}
-{space 12} {c |}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.008}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.009}{txt} {space 1}
+{res}{txt}{space 12} {c |}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.008}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.009}{txt} {space 1}
 {res}{txt}Truncation S {c |}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:-0.019}{txt} {space 1}{res} {ralign 12:-0.001}{txt} {space 1}{res} {ralign 12:0.001}{txt} {space 1}
-{space 12} {c |}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.002}{txt} {space 1}{res} {ralign 12:0.001}{txt} {space 1}{res} {ralign 12:0.001}{txt} {space 1}
-{hline 12}{c -}{c +}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
+{res}{txt}{space 12} {c |}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.000}{txt} {space 1}{res} {ralign 12:0.002}{txt} {space 1}{res} {ralign 12:0.001}{txt} {space 1}{res} {ralign 12:0.001}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c +}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
 {ralign 12:N} {c |}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}
-{ralign 12:N1} {c |}{res} {ralign 12:57482.000}{txt} {space 1}{res} {ralign 12:57482.000}{txt} {space 1}{res} {ralign 12:57482.000}{txt} {space 1}{res} {ralign 12:57482.000}{txt} {space 1}{res} {ralign 12:57482.000}{txt} {space 1}
-{ralign 12:N2} {c |}{res} {ralign 12:76793.000}{txt} {space 1}{res} {ralign 12:76793.000}{txt} {space 1}{res} {ralign 12:76793.000}{txt} {space 1}{res} {ralign 12:76793.000}{txt} {space 1}{res} {ralign 12:76793.000}{txt} {space 1}
-{ralign 12:r2} {c |}{res} {ralign 12:0.596}{txt} {space 1}{res} {ralign 12:0.996}{txt} {space 1}{res} {ralign 12:0.721}{txt} {space 1}{res} {ralign 12:0.003}{txt} {space 1}{res} {ralign 12:0.997}{txt} {space 1}
-{hline 12}{c -}{c BT}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
+{res}{txt}{ralign 12:N1} {c |}{res} {ralign 12:57482.000}{txt} {space 1}{res} {ralign 12:57482.000}{txt} {space 1}{res} {ralign 12:57482.000}{txt} {space 1}{res} {ralign 12:57482.000}{txt} {space 1}{res} {ralign 12:57482.000}{txt} {space 1}
+{res}{txt}{ralign 12:N2} {c |}{res} {ralign 12:76793.000}{txt} {space 1}{res} {ralign 12:76793.000}{txt} {space 1}{res} {ralign 12:76793.000}{txt} {space 1}{res} {ralign 12:76793.000}{txt} {space 1}{res} {ralign 12:76793.000}{txt} {space 1}
+{res}{txt}{ralign 12:r2} {c |}{res} {ralign 12:0.596}{txt} {space 1}{res} {ralign 12:0.996}{txt} {space 1}{res} {ralign 12:0.721}{txt} {space 1}{res} {ralign 12:0.002}{txt} {space 1}{res} {ralign 12:0.997}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c BT}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
 {ralign 89:legend: b/se}
-
+{res}{txt}
 {com}. 
 . ** Summary
 . est tab reg1 reg2 reg3 reg4 reg5, /*
@@ -359,20 +362,20 @@ flat or discontinuous region encountered
 {txt}{hline 12}{c -}{c TT}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
 {ralign 12:Variable} {c |} {center 12:reg1} {space 1} {center 12:reg2} {space 1} {center 12:reg3} {space 1} {center 12:reg4} {space 1} {center 12:reg5} {space 1}
 {hline 12}{c -}{c +}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
-{res}{txt}{space 5}Shift A {c |}{res} {ralign 12:0.092541}{txt} {space 1}{res} {ralign 12:0.092548}{txt} {space 1}{res} {ralign 12:0.114617}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.090605}{txt} {space 1}
-{space 12} {c |}{res} {ralign 12:0.002505}{txt} {space 1}{res} {ralign 12:0.002514}{txt} {space 1}{res} {ralign 12:0.002612}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.002329}{txt} {space 1}
-{res}{txt}{space 2}Dilation D {c |}{res} {ralign 12:1.000000}{txt} {space 1}{res} {ralign 12:1.219458}{txt} {space 1}{res} {ralign 12:1.000000}{txt} {space 1}{res} {ralign 12:1.000000}{txt} {space 1}{res} {ralign 12:1.228494}{txt} {space 1}
-{space 12} {c |}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.007742}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.008627}{txt} {space 1}
-{res}{txt}Truncation S {c |}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:-0.019472}{txt} {space 1}{res} {ralign 12:-0.001260}{txt} {space 1}{res} {ralign 12:0.001315}{txt} {space 1}
-{space 12} {c |}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.002082}{txt} {space 1}{res} {ralign 12:0.000648}{txt} {space 1}{res} {ralign 12:0.000846}{txt} {space 1}
-{hline 12}{c -}{c +}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
+{res}{txt}{space 5}Shift A {c |}{res} {ralign 12:0.092541}{txt} {space 1}{res} {ralign 12:0.092548}{txt} {space 1}{res} {ralign 12:0.114849}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.090657}{txt} {space 1}
+{res}{txt}{space 12} {c |}{res} {ralign 12:0.002365}{txt} {space 1}{res} {ralign 12:0.002368}{txt} {space 1}{res} {ralign 12:0.003248}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.001932}{txt} {space 1}
+{res}{txt}{space 2}Dilation D {c |}{res} {ralign 12:1.000000}{txt} {space 1}{res} {ralign 12:1.219458}{txt} {space 1}{res} {ralign 12:1.000000}{txt} {space 1}{res} {ralign 12:1.000000}{txt} {space 1}{res} {ralign 12:1.228265}{txt} {space 1}
+{res}{txt}{space 12} {c |}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.008085}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.008791}{txt} {space 1}
+{res}{txt}Truncation S {c |}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:-0.019398}{txt} {space 1}{res} {ralign 12:-0.001377}{txt} {space 1}{res} {ralign 12:0.001280}{txt} {space 1}
+{res}{txt}{space 12} {c |}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.000000}{txt} {space 1}{res} {ralign 12:0.002191}{txt} {space 1}{res} {ralign 12:0.000693}{txt} {space 1}{res} {ralign 12:0.000838}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c +}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
 {ralign 12:N} {c |}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}{res} {ralign 12:134275}{txt} {space 1}
-{ralign 12:N1} {c |}{res} {ralign 12:57482.000000}{txt} {space 1}{res} {ralign 12:57482.000000}{txt} {space 1}{res} {ralign 12:57482.000000}{txt} {space 1}{res} {ralign 12:57482.000000}{txt} {space 1}{res} {ralign 12:57482.000000}{txt} {space 1}
-{ralign 12:N2} {c |}{res} {ralign 12:76793.000000}{txt} {space 1}{res} {ralign 12:76793.000000}{txt} {space 1}{res} {ralign 12:76793.000000}{txt} {space 1}{res} {ralign 12:76793.000000}{txt} {space 1}{res} {ralign 12:76793.000000}{txt} {space 1}
-{ralign 12:r2} {c |}{res} {ralign 12:0.596315}{txt} {space 1}{res} {ralign 12:0.996278}{txt} {space 1}{res} {ralign 12:0.721439}{txt} {space 1}{res} {ralign 12:0.002500}{txt} {space 1}{res} {ralign 12:0.997366}{txt} {space 1}
-{hline 12}{c -}{c BT}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
+{res}{txt}{ralign 12:N1} {c |}{res} {ralign 12:57482.000000}{txt} {space 1}{res} {ralign 12:57482.000000}{txt} {space 1}{res} {ralign 12:57482.000000}{txt} {space 1}{res} {ralign 12:57482.000000}{txt} {space 1}{res} {ralign 12:57482.000000}{txt} {space 1}
+{res}{txt}{ralign 12:N2} {c |}{res} {ralign 12:76793.000000}{txt} {space 1}{res} {ralign 12:76793.000000}{txt} {space 1}{res} {ralign 12:76793.000000}{txt} {space 1}{res} {ralign 12:76793.000000}{txt} {space 1}{res} {ralign 12:76793.000000}{txt} {space 1}
+{res}{txt}{ralign 12:r2} {c |}{res} {ralign 12:0.596315}{txt} {space 1}{res} {ralign 12:0.996278}{txt} {space 1}{res} {ralign 12:0.721411}{txt} {space 1}{res} {ralign 12:0.002474}{txt} {space 1}{res} {ralign 12:0.997361}{txt} {space 1}
+{res}{txt}{hline 12}{c -}{c BT}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}{c -}{hline 12}{c -}{c -}
 {ralign 89:legend: b/se}
-
+{res}{txt}
 {com}. 
 .         
 . ** Save Results by mat2txt
@@ -384,15 +387,15 @@ flat or discontinuous region encountered
 . 
 . ** Display Time
 . disp "END: `c(current_time)' on `c(current_date)'"
-{res}END: 13:57:55 on 23 Feb 2017
+{res}END: 17:30:17 on 11 Jul 2022
 {txt}
 {com}. 
 . ** End Log
 . log close
       {txt}name:  {res}<unnamed>
-       {txt}log:  {res}G:\MyWorks\RIETI_Project\Stata_Journal_ESTQUANT\estquant\demo_cdgpr\log/LOG_cdgpr_econometrica.smcl
+       {txt}log:  {res}H:\MyWorks\RIETI_Project\Stata_RePEc_ESTQUANT\github\estquant\demo\replication_cdgpr\log/LOG_cdgpr_econometrica.smcl
   {txt}log type:  {res}smcl
- {txt}closed on:  {res}23 Feb 2017, 13:57:55
+ {txt}closed on:  {res}11 Jul 2022, 17:30:17
 {txt}{.-}
 {smcl}
-{txt}{sf}{ul off}exit, clear
+{txt}{sf}{ul off}
